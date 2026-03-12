@@ -1,0 +1,23 @@
+{
+  "github": {
+    "owner": "KatMokoena",
+    "ownerType": "user",
+    "tokenEnv": "GITHUB_TOKEN"
+  },
+  "defaults": {
+    "branch": "main",
+    "visibility": "public",
+    "enablePages": true,
+    "commitMessage": "Automated update"
+  },
+  "projects": [
+    {
+      "name": "Good Morning Dashboard",
+      "localPath": "C:/SelfBuilds/Good morning text",
+      "repo": "Good-Morning-my-baby",
+      "branch": "main",
+      "enablePages": true,
+      "commitMessage": "Update romantic dashboard"
+    }
+  ]
+}
