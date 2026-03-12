@@ -1,5 +1,10 @@
 param(
-  [string]$ConfigPath = ".\github-push.config.json"
+  [string]$ConfigPath = ".\github-push.config.json",
+  [string]$Owner = "",
+  [string]$OwnerType = "",
+  [string[]]$Folders = @(),
+  [string]$Visibility = "",
+  [switch]$EnablePages
 )
 
 $ErrorActionPreference = "Stop"
@@ -34,6 +39,33 @@ function Invoke-Git {
     ExitCode = $exitCode
     Output   = $output
   }
+}
+
+function ConvertTo-RepoSlug {
+  param([string]$Name)
+  $slug = $Name.ToLowerInvariant()
+  $slug = [regex]::Replace($slug, "[^a-z0-9]+", "-")
+  $slug = $slug.Trim("-")
+  if ([string]::IsNullOrWhiteSpace($slug)) {
+    return "repo-" + [DateTime]::UtcNow.ToString("yyyyMMddHHmmss")
+  }
+  return $slug
+}
+
+function Build-ProjectsFromFolders {
+  param([string[]]$InputFolders)
+  $items = @()
+  foreach ($folder in $InputFolders) {
+    if ([string]::IsNullOrWhiteSpace($folder)) { continue }
+    $leaf = Split-Path -Path $folder -Leaf
+    $repo = ConvertTo-RepoSlug -Name $leaf
+    $items += [PSCustomObject]@{
+      name      = $leaf
+      localPath = $folder
+      repo      = $repo
+    }
+  }
+  return $items
 }
 
 function Get-GitHubHeaders {
@@ -128,17 +160,38 @@ function Enable-GitHubPages {
   }
 }
 
-if (-not (Test-Path -LiteralPath $ConfigPath)) {
-  throw "Config file not found: $ConfigPath"
+if (-not [string]::IsNullOrWhiteSpace($Owner) -and $Folders.Count -gt 0) {
+  $config = [PSCustomObject]@{
+    github = [PSCustomObject]@{
+      owner = $Owner
+      ownerType = $(if ([string]::IsNullOrWhiteSpace($OwnerType)) { "user" } else { $OwnerType })
+      tokenEnv = "GITHUB_TOKEN"
+    }
+    defaults = [PSCustomObject]@{
+      branch = "main"
+      visibility = $(if ([string]::IsNullOrWhiteSpace($Visibility)) { "public" } else { $Visibility })
+      enablePages = [bool]$EnablePages
+      commitMessage = "Automated update"
+    }
+    projects = Build-ProjectsFromFolders -InputFolders $Folders
+  }
+} else {
+  if (-not (Test-Path -LiteralPath $ConfigPath)) {
+    throw "Config file not found: $ConfigPath"
+  }
+  $config = Get-Content -LiteralPath $ConfigPath -Raw | ConvertFrom-Json
 }
 
-$config = Get-Content -LiteralPath $ConfigPath -Raw | ConvertFrom-Json
 if (-not $config.projects -or $config.projects.Count -eq 0) {
-  throw "No projects found in config."
+  throw "No projects found. Provide projects in config, or pass -Owner and -Folders."
 }
 
-$owner = $config.github.owner
-$ownerType = if ($config.github.ownerType) { $config.github.ownerType } else { "user" }
+$owner = if (-not [string]::IsNullOrWhiteSpace($Owner)) { $Owner } else { $config.github.owner }
+if ([string]::IsNullOrWhiteSpace($owner)) {
+  throw "GitHub owner is required. Set github.owner in config or pass -Owner."
+}
+
+$ownerTypeResolved = if (-not [string]::IsNullOrWhiteSpace($OwnerType)) { $OwnerType } elseif ($config.github.ownerType) { $config.github.ownerType } else { "user" }
 $tokenEnv = if ($config.github.tokenEnv) { $config.github.tokenEnv } else { "GITHUB_TOKEN" }
 $token = [Environment]::GetEnvironmentVariable($tokenEnv, "Process")
 if (-not $token) { $token = [Environment]::GetEnvironmentVariable($tokenEnv, "User") }
@@ -146,8 +199,8 @@ if (-not $token) { $token = [Environment]::GetEnvironmentVariable($tokenEnv, "Ma
 $headers = Get-GitHubHeaders -Token $token
 
 $branchDefault = if ($config.defaults.branch) { $config.defaults.branch } else { "main" }
-$visibilityDefault = if ($config.defaults.visibility) { $config.defaults.visibility } else { "public" }
-$enablePagesDefault = [bool]$config.defaults.enablePages
+$visibilityDefault = if (-not [string]::IsNullOrWhiteSpace($Visibility)) { $Visibility } elseif ($config.defaults.visibility) { $config.defaults.visibility } else { "public" }
+$enablePagesDefault = if ($EnablePages.IsPresent) { $true } else { [bool]$config.defaults.enablePages }
 $commitDefault = if ($config.defaults.commitMessage) { $config.defaults.commitMessage } else { "Automated update" }
 
 $results = @()
@@ -155,7 +208,7 @@ $results = @()
 foreach ($project in $config.projects) {
   $name = if ($project.name) { $project.name } else { $project.repo }
   $path = $project.localPath
-  $repo = $project.repo
+  $repo = if ($project.repo) { $project.repo } else { ConvertTo-RepoSlug -Name (Split-Path -Path $path -Leaf) }
   $branch = if ($project.branch) { $project.branch } else { $branchDefault }
   $visibility = if ($project.visibility) { $project.visibility } else { $visibilityDefault }
   $enablePages = if ($null -ne $project.enablePages) { [bool]$project.enablePages } else { $enablePagesDefault }
@@ -167,7 +220,7 @@ foreach ($project in $config.projects) {
   }
 
   Write-Info "Processing: $name"
-  Ensure-GitHubRepo -Owner $owner -OwnerType $ownerType -Repo $repo -Visibility $visibility -Headers $headers
+  Ensure-GitHubRepo -Owner $owner -OwnerType $ownerTypeResolved -Repo $repo -Visibility $visibility -Headers $headers
 
   $checkRepo = Invoke-Git -Path $path -Args @("rev-parse", "--is-inside-work-tree")
   if ($checkRepo.ExitCode -ne 0) {
