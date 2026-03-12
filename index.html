@@ -1,0 +1,861 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A warm, romantic Good Morning dashboard with daily messages, rotating themes, and touch animations." />
+  <meta property="og:title" content="Good Morning, My Love" />
+  <meta property="og:description" content="A sweet daily board with rotating themes and heartfelt messages." />
+  <meta property="og:type" content="website" />
+  <title>Good Morning Board</title>
+  <style>
+    :root {
+      --bg-a: #1f1424;
+      --bg-b: #3a1f38;
+      --bg-c: #5b2a4a;
+      --card-bg: rgba(255, 246, 252, 0.14);
+      --card-border: rgba(255, 255, 255, 0.26);
+      --text-main: #1f151f;
+      --text-soft: #6e4f66;
+      --accent: #cf5d88;
+      --shadow: 0 22px 60px rgba(14, 6, 15, 0.42);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--text-main);
+    }
+
+    body {
+      overflow-x: hidden;
+      background: linear-gradient(145deg, var(--bg-a), var(--bg-b) 52%, var(--bg-c));
+      transition: background 500ms ease;
+    }
+
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 15% 16%, rgba(255, 214, 236, 0.24), transparent 38%),
+        radial-gradient(circle at 80% 18%, rgba(255, 226, 194, 0.2), transparent 33%),
+        radial-gradient(circle at 60% 86%, rgba(255, 232, 248, 0.16), transparent 36%);
+      animation: floatGlow 14s ease-in-out infinite alternate;
+    }
+
+    .shell {
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+    }
+
+    .card {
+      width: min(100%, 860px);
+      position: relative;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 28px;
+      padding: clamp(1.2rem, 3vw, 2.4rem);
+      text-align: center;
+      animation: riseIn 700ms ease both;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      border-radius: 27px;
+      pointer-events: none;
+      background: linear-gradient(120deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.2));
+      mix-blend-mode: screen;
+      opacity: 0.62;
+      animation: shimmer 10s linear infinite;
+    }
+
+    .eyebrow {
+      margin: 0;
+      color: #f4d6e9;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+    }
+
+    .title {
+      margin: 0.45rem 0 0.25rem;
+      font-family: "Playfair Display", Georgia, serif;
+      font-size: clamp(1.8rem, 4.2vw, 3.2rem);
+      color: #fff8fc;
+      text-shadow: 0 8px 26px rgba(30, 9, 30, 0.38);
+    }
+
+    .date {
+      margin: 0.35rem 0 1.2rem;
+      color: #ecd2e5;
+      font-size: clamp(0.98rem, 2vw, 1.12rem);
+    }
+
+    .message-wrap {
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.42);
+      padding: clamp(0.95rem, 2.5vw, 1.6rem);
+    }
+
+    .message-label {
+      margin: 0 0 0.6rem;
+      color: var(--accent);
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .message {
+      margin: 0;
+      font-size: clamp(1.05rem, 2.6vw, 1.45rem);
+      line-height: 1.65;
+      font-weight: 500;
+      color: #1f1621;
+    }
+
+    .signature-wrap {
+      margin-top: 1.35rem;
+    }
+
+    .extras-grid {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.85rem;
+      text-align: left;
+    }
+
+    .tile {
+      background: rgba(255, 255, 255, 0.42);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 16px;
+      padding: 0.85rem 0.95rem;
+    }
+
+    .tile-title {
+      margin: 0 0 0.5rem;
+      color: #190f1d;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .countdown-days {
+      margin: 0;
+      font-size: clamp(1.25rem, 3.6vw, 1.75rem);
+      font-weight: 700;
+      line-height: 1.2;
+      color: #1b101d;
+    }
+
+    .countdown-motion {
+      margin-top: 0.45rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.28rem;
+      color: #2a172d;
+      font-size: 0.95rem;
+      opacity: 0.9;
+      text-align: center;
+    }
+
+    .hourglass {
+      display: inline-block;
+      font-size: clamp(2.2rem, 7vw, 3.2rem);
+      transform-origin: center;
+      animation: hourglassFlip 1.8s ease-in-out infinite;
+      filter: drop-shadow(0 3px 8px rgba(15, 6, 15, 0.2));
+      line-height: 1;
+    }
+
+    .countdown-clock {
+      margin: 0;
+      color: #1b101d;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .song-tile {
+      grid-column: 1 / -1;
+    }
+
+    .song-embed {
+      border: 0;
+      width: 100%;
+      min-height: 152px;
+      border-radius: 12px;
+      box-shadow: 0 10px 26px rgba(15, 6, 15, 0.2);
+    }
+
+    .song-caption {
+      margin: 0.45rem 0 0;
+      color: var(--text-soft);
+      font-size: 0.9rem;
+    }
+
+    .mood-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 0.55rem;
+    }
+
+    .mood-btn {
+      border: 1px solid rgba(255, 255, 255, 0.62);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(255, 255, 255, 0.2));
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 999px;
+      padding: 0.35rem 0.68rem;
+      color: #101010;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: transform 140ms ease, background 180ms ease, box-shadow 180ms ease;
+    }
+
+    .mood-btn:hover,
+    .mood-btn:focus {
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .mood-btn.active {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.38));
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
+    }
+
+    .mood-note {
+      margin: 0;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: var(--text-main);
+      min-height: 2.8em;
+    }
+
+    .signature {
+      margin: 0;
+      font-family: "Great Vibes", "Brush Script MT", cursive;
+      font-size: clamp(1.7rem, 4vw, 2.5rem);
+      color: #ffd7ea;
+      text-shadow: 0 8px 22px rgba(19, 7, 19, 0.4);
+    }
+
+    .burst {
+      position: fixed;
+      left: 0;
+      top: 0;
+      font-size: clamp(1.2rem, 3.8vw, 1.9rem);
+      pointer-events: none;
+      user-select: none;
+      animation: floatBurst 1200ms ease-out forwards;
+      transform: translate(-50%, -50%);
+      z-index: 99;
+      will-change: transform, opacity;
+    }
+
+    .tap-hint {
+      position: fixed;
+      right: clamp(0.45rem, 2vw, 0.95rem);
+      bottom: clamp(0.55rem, 2vw, 1rem);
+      margin: 0;
+      padding: 0.5rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.34);
+      color: #f8e9f4;
+      font-size: 0.78rem;
+      letter-spacing: 0.02em;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 10px 22px rgba(13, 5, 13, 0.22);
+      animation: hintPulse 2.3s ease-in-out infinite;
+      z-index: 80;
+      transition: opacity 320ms ease, transform 320ms ease;
+      pointer-events: none;
+    }
+
+    .tap-hint-hidden {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+
+    /* Fallback for restricted viewers: still show a moving heart on press. */
+    .shell:active .card::after {
+      content: "\uD83D\uDC96";
+      position: absolute;
+      left: 50%;
+      top: 62%;
+      transform: translate(-50%, -50%);
+      font-size: clamp(1.3rem, 4vw, 2rem);
+      opacity: 0.92;
+      pointer-events: none;
+      animation: fallbackBurst 680ms ease-out forwards;
+    }
+
+    @keyframes riseIn {
+      from {
+        transform: translateY(8px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes floatGlow {
+      from {
+        transform: scale(1) translateY(0);
+      }
+      to {
+        transform: scale(1.08) translateY(-12px);
+      }
+    }
+
+    @keyframes floatBurst {
+      0% {
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0.95;
+      }
+      100% {
+        transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.35);
+        opacity: 0;
+      }
+    }
+
+    @keyframes shimmer {
+      from {
+        transform: translateX(-8%);
+      }
+      to {
+        transform: translateX(8%);
+      }
+    }
+
+    @keyframes hourglassFlip {
+      0%, 40% {
+        transform: rotate(0deg);
+      }
+      55%, 100% {
+        transform: rotate(180deg);
+      }
+    }
+
+    @keyframes hintPulse {
+      0%, 100% {
+        opacity: 0.72;
+      }
+      50% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes fallbackBurst {
+      0% {
+        transform: translate(-50%, -40%) scale(0.9);
+        opacity: 0.95;
+      }
+      100% {
+        transform: translate(-50%, -180%) scale(1.2);
+        opacity: 0;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .card {
+        border-radius: 22px;
+      }
+
+      .extras-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    body.theme-pastel {
+      --bg-a: #2b1530;
+      --bg-b: #4a2543;
+      --bg-c: #7f3b64;
+      --accent: #e47da6;
+    }
+
+    body.theme-floral {
+      --bg-a: #27131f;
+      --bg-b: #4a1e35;
+      --bg-c: #7e3b5c;
+      --accent: #df7898;
+    }
+
+    body.theme-sunrise {
+      --bg-a: #2c1622;
+      --bg-b: #5f2a40;
+      --bg-c: #8f4f5e;
+      --accent: #f29ab0;
+    }
+
+    body.theme-cozy {
+      --bg-a: #22161d;
+      --bg-b: #3f2130;
+      --bg-c: #6f3f52;
+      --text-main: #201621;
+      --text-soft: #6f4f67;
+      --accent: #d98aa4;
+    }
+
+    body.theme-lavender {
+      --bg-a: #21162d;
+      --bg-b: #3a2653;
+      --bg-c: #5d3d87;
+      --accent: #d4a3ff;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-layer"></div>
+  <main class="shell">
+    <section class="card" role="region" aria-label="Good morning dashboard">
+      <p class="eyebrow">My baby♥️</p>
+      <h1 class="title">Good Morning, maMokwana</h1>
+      <p id="dateDisplay" class="date" aria-live="polite"></p>
+
+      <article class="message-wrap">
+        <h2 class="message-label">Today's Message</h2>
+        <p id="dailyMessage" class="message" aria-live="polite">Good morning, my love. I hope your day starts with peace and ends with joy.</p>
+      </article>
+
+      <section class="extras-grid" aria-label="Romantic extras">
+        <article class="tile" aria-live="polite">
+          <h3 class="tile-title">Days Till I See You</h3>
+          <p id="countdownDays" class="countdown-days">Counting...</p>
+          <p class="countdown-motion">
+            <span class="hourglass" aria-hidden="true">&#8987;</span>
+            <span id="countdownClock" class="countdown-clock">00:00:00</span>
+          </p>
+        </article>
+
+        <article class="tile">
+          <h3 class="tile-title">How do you feel?</h3>
+          <div class="mood-row" id="moodRow">
+            <button class="mood-btn" type="button" data-mood="happy">Happy</button>
+            <button class="mood-btn" type="button" data-mood="tired">Tired</button>
+            <button class="mood-btn" type="button" data-mood="stressed">Stressed</button>
+            <button class="mood-btn" type="button" data-mood="sad">Sad</button>
+            <button class="mood-btn" type="button" data-mood="anxious">Anxious</button>
+          </div>
+          <p id="moodNote" class="mood-note">Tap your mood, my baby. I have a loving note ready for you.</p>
+        </article>
+
+        <article class="tile song-tile">
+          <h3 class="tile-title">Song of the Day</h3>
+          <iframe
+            id="songEmbed"
+            class="song-embed"
+            title="Spotify song of the day"
+            loading="lazy"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            src="https://open.spotify.com/embed/playlist/37i9dQZF1EIVi43A2zNmfE?utm_source=generator&theme=0&autoplay=1">
+          </iframe>
+          <p id="songCaption" class="song-caption">A romantic moment from your playlist, changing each day.</p>
+        </article>
+      </section>
+
+      <footer class="signature-wrap">
+        <p class="signature">I love you baby &ndash; Kat</p>
+      </footer>
+    </section>
+  </main>
+  <p id="tapHint" class="tap-hint">Tap anywhere to release flowers and hearts</p>
+
+  <script src="./dashboard.config.js"></script>
+  <script>
+    var THEMES = ["theme-pastel", "theme-floral", "theme-sunrise", "theme-cozy", "theme-lavender"];
+    var BURST_ICONS = ["\uD83D\uDC96", "\uD83D\uDC97", "\uD83D\uDC93", "\uD83C\uDF38", "\uD83C\uDF37", "\uD83C\uDF39", "\uD83D\uDC98"];
+    var SPOTIFY_PLAYLIST_ID = "37i9dQZF1EIVi43A2zNmfE";
+    var SPOTIFY_PLAYLIST_LINK = "https://open.spotify.com/playlist/37i9dQZF1EIVi43A2zNmfE?si=_yxmuNVjRWmm51EEO7yLXg";
+    var SONG_DAY_LABELS = [
+      "Soft sunrise love",
+      "Warm cuddle energy",
+      "Sweet-heart sparkle",
+      "Kiss-in-the-air mood",
+      "Forever-us vibe",
+      "Slow dance morning",
+      "Golden romance glow",
+      "Tender smile rhythm"
+    ];
+    var MOOD_NOTES = {
+      happy: "I love seeing you happy, my love. Keep shining and smiling. I am proud of you.",
+      tired: "Rest when you need to maMokwana. You do so much, and I am here to hold you through it all.",
+      stressed: "Take a deep breath, baby. One step at a time, and I will always stand by you.",
+      sad: "I am here my love. You are not alone. I am wrapping you in the biggest hug.",
+      anxious: "You are safe, loved, and stronger than you feel right now. We will get through this together."
+    };
+
+    var MESSAGES = [
+      "Good morning, beautiful. I hope your day starts softly and ends with a smile.",
+      "Rise and shine, my favorite person. You make every sunrise feel magical.",
+      "Morning love. May your coffee be strong and your heart feel light.",
+      "Good morning, sunshine. You are the best part of every day.",
+      "Wishing you a peaceful morning and a day full of little wins.",
+      "Wake up, gorgeous. The world is brighter because you are in it.",
+      "Good morning, baby. Sending you warmth, hugs, and sweet thoughts.",
+      "A fresh day, a fresh smile, and a reminder that you are deeply loved.",
+      "Good morning. I hope today feels easy, kind, and beautifully yours.",
+      "Morning, my love. You deserve joy in every hour ahead.",
+      "Good morning, sweetheart. I am cheering for you always.",
+      "The sun rose today just to match your glow. Have a lovely morning.",
+      "Hey beautiful, start today knowing you are enough and more.",
+      "Good morning. May your steps be light and your spirit strong.",
+      "Wishing you calm moments, happy thoughts, and a great start.",
+      "Wake up, angel. Today already feels lucky because of you.",
+      "Good morning, love. I hope your day is as sweet as your smile.",
+      "Morning hugs in message form. Keep shining.",
+      "Good morning, my favorite hello and my softest thought.",
+      "May this morning wrap you in peace and confidence.",
+      "Good morning, babe. You make ordinary days feel extraordinary.",
+      "Rise and sparkle. You were made for wonderful things.",
+      "Good morning. Sending you a little sunshine and a lot of love.",
+      "You are the reason mornings feel hopeful. Have a beautiful day.",
+      "Good morning, cutie. Breathe deep and go glow.",
+      "Today is lucky to have you in it. Good morning.",
+      "Good morning, sweet girl. May your day be gentle and bright.",
+      "Morning love. I hope your heart feels full and your mind feels clear.",
+      "Wake up smiling. You are loved more than words can hold.",
+      "Good morning. One thought for today: you are unstoppable.",
+      "Good morning, beautiful soul. Keep being your amazing self.",
+      "You make mornings feel like poetry. Have a great day.",
+      "Good morning. May today bring you sweet surprises.",
+      "Rise and shine, darling. I believe in you completely.",
+      "Morning, my person. Your happiness matters so much to me.",
+      "Good morning, love. Let your kindness lead the day.",
+      "Wishing you a cozy morning and a confident afternoon.",
+      "Good morning. You are my favorite reason to smile.",
+      "Wake up, pretty heart. You are doing better than you think.",
+      "Good morning, babe. You bring softness to every moment.",
+      "Today is new and full of possibility. So are you.",
+      "Good morning. Keep your head high and your heart open.",
+      "Morning sunshine. You are deeply admired.",
+      "Good morning, love. I hope today treats you beautifully.",
+      "Rise and bloom. The day is waiting for your magic.",
+      "Good morning. Your laugh is my favorite soundtrack.",
+      "Wishing you peace in your mind and warmth in your heart.",
+      "Good morning, beautiful. You are a gift to this world.",
+      "Wake gently, dream big, and move with confidence.",
+      "Good morning. You make life feel lighter.",
+      "Morning love. I hope your day is colorful and kind.",
+      "Good morning, gorgeous. Keep that sparkle alive.",
+      "A tiny reminder this morning: you are truly cherished.",
+      "Good morning. You are stronger than yesterday and brighter than ever.",
+      "Morning, babe. I am proud of the person you are.",
+      "Good morning. May your day be full of good people and good vibes.",
+      "Wake up, sweetheart. Your smile can change the whole room.",
+      "Good morning, my love. Go be amazing today.",
+      "This morning feels better because I am thinking of you.",
+      "Good morning. Your presence makes everything warmer.",
+      "Rise with confidence. You have this, always.",
+      "Good morning, love. Keep your heart soft and your courage strong.",
+      "Morning beautiful. I hope your day unfolds perfectly.",
+      "Good morning. The world needs your light today.",
+      "Wake up, darling. You are my favorite kind of wonderful.",
+      "Good morning, babe. Sending a kiss with this message.",
+      "A gentle morning wish for you: joy, ease, and love.",
+      "Good morning. You are my sunshine even on cloudy days.",
+      "Morning love. Keep going, keep glowing.",
+      "Good morning, sweet one. I hope you feel adored today.",
+      "Wake up smiling. Better moments are already on their way.",
+      "Good morning. You carry beauty in everything you do.",
+      "Morning, angel. May this day be kind to your heart.",
+      "Good morning, love. I am grateful for you every day.",
+      "Rise and breathe. You are exactly where you need to be.",
+      "Good morning. You make even quiet moments feel special.",
+      "Morning babe. I hope your day is smooth and successful.",
+      "Good morning, beautiful. Trust yourself and shine.",
+      "Wake up, my love. Today is another chance to bloom.",
+      "Good morning. You deserve all the happiness coming your way.",
+      "Morning sunshine. Your smile is my favorite sunrise.",
+      "Good morning, babe. I hope today feels like a warm hug.",
+      "Rise and glow. You are always enough.",
+      "Good morning, my heart. Keep being wonderfully you."
+    ];
+
+    function daysSinceEpoch(date) {
+      var d = date || new Date();
+      return Math.floor(d.getTime() / 86400000);
+    }
+
+    function mulberry32(seed) {
+      return function random() {
+        var t = (seed += 0x6d2b79f5);
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function seededShuffle(list, seed) {
+      var out = list.slice();
+      var random = mulberry32(seed);
+      for (var i = out.length - 1; i > 0; i -= 1) {
+        var j = Math.floor(random() * (i + 1));
+        var tmp = out[i];
+        out[i] = out[j];
+        out[j] = tmp;
+      }
+      return out;
+    }
+
+    function formatToday() {
+      var now = new Date();
+      try {
+        if (typeof Intl !== "undefined" && Intl.DateTimeFormat) {
+          return new Intl.DateTimeFormat(undefined, {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+          }).format(now);
+        }
+      } catch (err) {
+        // Fall back below.
+      }
+      return now.toDateString();
+    }
+
+    function applyTheme() {
+      var dayNumber = daysSinceEpoch();
+      var themeClass = THEMES[dayNumber % THEMES.length];
+      for (var i = 0; i < THEMES.length; i += 1) {
+        document.body.classList.remove(THEMES[i]);
+      }
+      document.body.classList.add(themeClass);
+    }
+
+    function pickMessageForToday(messages) {
+      var dayNumber = daysSinceEpoch();
+      var cycle = Math.floor(dayNumber / messages.length);
+      var dayOffset = dayNumber % messages.length;
+      var sequence = seededShuffle(messages, cycle + 8517);
+      return sequence[dayOffset];
+    }
+
+    function createBurstAt(x, y) {
+      for (var i = 0; i < 6; i += 1) {
+        var item = document.createElement("span");
+        item.className = "burst";
+        item.textContent = BURST_ICONS[Math.floor(Math.random() * BURST_ICONS.length)];
+        var dx = (Math.random() - 0.5) * 220;
+        var dy = -40 - Math.random() * 180;
+        item.style.left = x + "px";
+        item.style.top = y + "px";
+        item.style.setProperty("--dx", dx.toFixed(0) + "px");
+        item.style.setProperty("--dy", dy.toFixed(0) + "px");
+        item.style.animationDelay = (i * 28) + "ms";
+        document.body.appendChild(item);
+        item.addEventListener("animationend", function () {
+          if (item && item.parentNode) {
+            item.parentNode.removeChild(item);
+          }
+        });
+      }
+    }
+
+    function bindBurstInteraction() {
+      var hasDismissedHint = false;
+      var handler = function (event) {
+        var x = 0;
+        var y = 0;
+        if (event.touches && event.touches.length > 0) {
+          x = event.touches[0].clientX;
+          y = event.touches[0].clientY;
+        } else {
+          x = event.clientX || 0;
+          y = event.clientY || 0;
+        }
+        createBurstAt(x, y);
+        if (!hasDismissedHint) {
+          var hintEl = document.getElementById("tapHint");
+          if (hintEl) {
+            hintEl.classList.add("tap-hint-hidden");
+          }
+          hasDismissedHint = true;
+        }
+      };
+      document.addEventListener("pointerdown", handler);
+      document.addEventListener("touchstart", handler);
+      document.addEventListener("click", handler);
+    }
+
+    function getNextSundayInfo(now) {
+      var day = now.getDay();
+      var daysUntil = (7 - day) % 7;
+      var target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntil);
+      return { daysUntil: daysUntil, targetDate: target };
+    }
+
+    function parseConfiguredDate(input) {
+      if (!input || typeof input !== "string") {
+        return null;
+      }
+      var value = input.trim();
+      var dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+      if (dateOnlyMatch) {
+        var year = parseInt(dateOnlyMatch[1], 10);
+        var month = parseInt(dateOnlyMatch[2], 10) - 1;
+        var day = parseInt(dateOnlyMatch[3], 10);
+        var dateOnly = new Date(year, month, day, 0, 0, 0, 0);
+        if (!isNaN(dateOnly.getTime())) {
+          return dateOnly;
+        }
+      }
+
+      var parsed = new Date(value);
+      if (!isNaN(parsed.getTime())) {
+        return parsed;
+      }
+      return null;
+    }
+
+    function getCountdownTargetDate(now) {
+      var config = window.DASHBOARD_CONFIG || {};
+      var configuredDate = parseConfiguredDate(config.nextSeeYouDate);
+      if (configuredDate) {
+        return configuredDate;
+      }
+      return getNextSundayInfo(now).targetDate;
+    }
+
+    function pad2(num) {
+      return num < 10 ? "0" + num : String(num);
+    }
+
+    function updateCountdown() {
+      var daysEl = document.getElementById("countdownDays");
+      var clockEl = document.getElementById("countdownClock");
+      if (!daysEl || !clockEl) {
+        return;
+      }
+
+      var now = new Date();
+      var target = getCountdownTargetDate(now);
+      var diffMs = target.getTime() - now.getTime();
+      if (diffMs <= 0) {
+        daysEl.textContent = "I see you today \uD83D\uDC96";
+        clockEl.textContent = "00:00:00";
+        return;
+      }
+
+      var dayMs = 86400000;
+      var daysUntil = Math.floor(diffMs / dayMs);
+      if (daysUntil === 1) {
+        daysEl.textContent = "1 day to go";
+      } else {
+        daysEl.textContent = daysUntil + " days to go";
+      }
+      var totalSeconds = Math.floor(diffMs / 1000);
+      var hours = Math.floor(totalSeconds / 3600);
+      var minutes = Math.floor((totalSeconds % 3600) / 60);
+      var seconds = totalSeconds % 60;
+      clockEl.textContent = pad2(hours) + ":" + pad2(minutes) + ":" + pad2(seconds);
+    }
+
+    function updateSongOfTheDay() {
+      var embedEl = document.getElementById("songEmbed");
+      var captionEl = document.getElementById("songCaption");
+      if (!embedEl) {
+        return;
+      }
+      var dayNumber = daysSinceEpoch();
+      var moodIndex = dayNumber % SONG_DAY_LABELS.length;
+      var secondOffset = (dayNumber % 12) * 37;
+      var embedUrl = "https://open.spotify.com/embed/playlist/" + SPOTIFY_PLAYLIST_ID +
+        "?utm_source=generator&theme=0&autoplay=1&t=" + secondOffset;
+      embedEl.src = embedUrl;
+
+      if (captionEl) {
+        var link = document.createElement("a");
+        link.href = SPOTIFY_PLAYLIST_LINK;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "Open full playlist";
+
+        captionEl.textContent = "Today's vibe: " + SONG_DAY_LABELS[moodIndex] + " - ";
+        captionEl.appendChild(link);
+      }
+    }
+
+    function bindMoodPicker() {
+      var moodRow = document.getElementById("moodRow");
+      var noteEl = document.getElementById("moodNote");
+      if (!moodRow || !noteEl) {
+        return;
+      }
+
+      moodRow.addEventListener("click", function (event) {
+        var target = event.target;
+        if (!target || !target.getAttribute) {
+          return;
+        }
+        var mood = target.getAttribute("data-mood");
+        if (!mood || !MOOD_NOTES[mood]) {
+          return;
+        }
+
+        var buttons = moodRow.querySelectorAll(".mood-btn");
+        for (var i = 0; i < buttons.length; i += 1) {
+          buttons[i].classList.remove("active");
+        }
+        target.classList.add("active");
+        noteEl.textContent = MOOD_NOTES[mood];
+      });
+    }
+
+    function initBoard() {
+      var dateEl = document.getElementById("dateDisplay");
+      var msgEl = document.getElementById("dailyMessage");
+      try {
+        if (dateEl) {
+          dateEl.textContent = formatToday();
+        }
+        applyTheme();
+        if (msgEl) {
+          msgEl.textContent = pickMessageForToday(MESSAGES);
+        }
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+        updateSongOfTheDay();
+        bindMoodPicker();
+        bindBurstInteraction();
+      } catch (err) {
+        if (msgEl) {
+          msgEl.textContent = "Good morning, my love. You are always in my heart.";
+        }
+      }
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initBoard);
+    } else {
+      initBoard();
+    }
+  </script>
+</body>
+</html>

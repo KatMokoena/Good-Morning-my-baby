@@ -1,0 +1,183 @@
+:root {
+  --bg-a: #fff1f6;
+  --bg-b: #ffe8d6;
+  --bg-c: #fde2ff;
+  --card-bg: rgba(255, 255, 255, 0.72);
+  --card-border: rgba(255, 255, 255, 0.62);
+  --text-main: #3c2a3a;
+  --text-soft: #6b4f62;
+  --accent: #ff6f91;
+  --accent-2: #ffc75f;
+  --shadow: 0 18px 48px rgba(70, 23, 56, 0.18);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: var(--text-main);
+}
+
+body {
+  overflow-x: hidden;
+  background: linear-gradient(160deg, var(--bg-a), var(--bg-b) 55%, var(--bg-c));
+  transition: background 500ms ease;
+}
+
+.bg-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.55), transparent 36%),
+    radial-gradient(circle at 82% 15%, rgba(255, 255, 255, 0.35), transparent 30%),
+    radial-gradient(circle at 50% 88%, rgba(255, 255, 255, 0.4), transparent 32%);
+  animation: floatGlow 14s ease-in-out infinite alternate;
+}
+
+.shell {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.card {
+  width: min(100%, 860px);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 28px;
+  padding: clamp(1.2rem, 3vw, 2.4rem);
+  text-align: center;
+  animation: riseIn 700ms ease both;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--text-soft);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.title {
+  margin: 0.45rem 0 0.25rem;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(1.8rem, 4.2vw, 3.2rem);
+}
+
+.date {
+  margin: 0.35rem 0 1.2rem;
+  color: var(--text-soft);
+  font-size: clamp(0.98rem, 2vw, 1.12rem);
+}
+
+.message-wrap {
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  padding: clamp(0.95rem, 2.5vw, 1.6rem);
+}
+
+.message-label {
+  margin: 0 0 0.6rem;
+  color: var(--accent);
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.message {
+  margin: 0;
+  font-size: clamp(1.05rem, 2.6vw, 1.45rem);
+  line-height: 1.65;
+  font-weight: 500;
+}
+
+.signature-wrap {
+  margin-top: 1.35rem;
+}
+
+.signature {
+  margin: 0;
+  font-family: "Great Vibes", "Playfair Display", cursive;
+  font-size: clamp(1.7rem, 4vw, 2.5rem);
+  color: var(--accent);
+  text-shadow: 0 6px 20px rgba(255, 111, 145, 0.28);
+}
+
+@keyframes riseIn {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes floatGlow {
+  from {
+    transform: scale(1) translateY(0);
+  }
+  to {
+    transform: scale(1.08) translateY(-12px);
+  }
+}
+
+@media (max-width: 720px) {
+  .card {
+    border-radius: 22px;
+  }
+}
+
+/* Theme palettes rotate by day to keep the board fresh. */
+body.theme-pastel {
+  --bg-a: #fff1f6;
+  --bg-b: #ffe5ec;
+  --bg-c: #f3e8ff;
+  --accent: #ff6f91;
+  --accent-2: #ffc75f;
+}
+
+body.theme-floral {
+  --bg-a: #fdf6ec;
+  --bg-b: #ffe8d6;
+  --bg-c: #ffd6e0;
+  --accent: #d65d7a;
+  --accent-2: #f8b195;
+}
+
+body.theme-sunrise {
+  --bg-a: #fff2d8;
+  --bg-b: #ffd8a8;
+  --bg-c: #ffc3a0;
+  --accent: #f67280;
+  --accent-2: #ff9671;
+}
+
+body.theme-cozy {
+  --bg-a: #f6efe8;
+  --bg-b: #e8d7c8;
+  --bg-c: #d9c5b2;
+  --text-main: #3d2f26;
+  --text-soft: #6b4f3b;
+  --accent: #b05d3b;
+  --accent-2: #e5b299;
+}
+
+body.theme-lavender {
+  --bg-a: #f5f0ff;
+  --bg-b: #ece4ff;
+  --bg-c: #e6d6ff;
+  --accent: #8a63d2;
+  --accent-2: #bfa2ff;
+}
