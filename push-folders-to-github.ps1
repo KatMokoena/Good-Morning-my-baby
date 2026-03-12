@@ -207,7 +207,18 @@ foreach ($project in $config.projects) {
 
   $push = Invoke-Git -Path $path -Args @("push", "-u", "origin", $branch)
   if ($push.ExitCode -ne 0) {
-    throw "git push failed for '$name'.`n$($push.Output -join "`n")"
+    $pushText = $push.Output -join "`n"
+    if ($pushText -match "fetch first|non-fast-forward") {
+      Write-Warn "Remote has new commits for $name. Rebasing local branch and retrying push."
+      $pull = Invoke-Git -Path $path -Args @("pull", "--rebase", "origin", $branch)
+      if ($pull.ExitCode -ne 0) {
+        throw "git pull --rebase failed for '$name'.`n$($pull.Output -join "`n")"
+      }
+      $push = Invoke-Git -Path $path -Args @("push", "-u", "origin", $branch)
+    }
+    if ($push.ExitCode -ne 0) {
+      throw "git push failed for '$name'.`n$($push.Output -join "`n")"
+    }
   }
 
   if ($enablePages) {
