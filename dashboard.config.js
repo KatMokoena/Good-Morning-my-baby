@@ -3,5 +3,5 @@
 // - "YYYY-MM-DD" (recommended)
 // - Full date-time string (e.g. "2026-03-15T18:00:00")
 window.DASHBOARD_CONFIG = {
-  nextSeeYouDate: "2026-03-15"
+  nextSeeYouDate: "2026-03-22"
 };
